@@ -6,3 +6,4 @@ keras
 joblib
 matplotlib
 scikit-learn
+selenium
