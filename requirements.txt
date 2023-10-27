@@ -7,3 +7,4 @@ joblib
 matplotlib
 scikit-learn
 selenium
+bs4
