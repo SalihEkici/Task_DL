@@ -56,13 +56,13 @@ if st.sidebar.button("Scrape images"):
         img_tags = soup.findAll('img')
         img_urls = []
 
-    get the tags of the html elements
+    #get the tags of the html elements
         for img_tag in img_tags:
             if img_tag.has_attr('data-src'):
                 img_url = img_tag['data-src']
                 img_class = img_tag.get('class')
 
-    check if no69gc is not in the tags. this tag is used for favicons on google images
+    #check if no69gc is not in the tags. this tag is used for favicons on google images
                 if 'no69gc' not in img_class:
                     img_urls.append(img_url)
 
