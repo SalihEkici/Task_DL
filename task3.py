@@ -104,7 +104,84 @@ if st.sidebar.button("Scrape images"):
                 os.makedirs(target_dir)
 
             download_image(img_url, keyword, i, target_dir)
+    # Set the parameters for your data
+    batch_size = 32
+    image_size = (224, 224)
+    validation_split = 0.2
 
+    train_ds = image_dataset_from_directory(
+    directory='./datasets/animals/training',
+    labels='inferred',
+    label_mode='categorical',
+    batch_size=batch_size,
+    image_size=image_size,
+    validation_split=validation_split,
+    subset='training',
+    seed=123
+    )
+
+    # Create the validation dataset from the 'train' directory
+    validation_ds = image_dataset_from_directory(
+    directory='./datasets/animals/training',
+    labels='inferred',
+    label_mode='categorical',
+    batch_size=batch_size,
+    image_size=image_size,
+    validation_split=validation_split,
+    subset='validation',
+    seed=123
+    )
+
+    # Create the testing dataset from the 'test' directory
+    test_ds = image_dataset_from_directory(
+    directory='./datasets/animals/test',
+    labels='inferred',
+    label_mode='categorical',
+    batch_size=batch_size,
+    image_size=image_size
+    )
+
+    epoch_slider = st.sidebar.slider("Number of epochs", min_value=5, max_value=30, value=15, step=5)
+    batch_size_dropdown = st.sidebar.selectbox("Select the batch size",("32","64","128"))
+
+
+    # Choose the number of classes that you will be working with
+    NUM_CLASSES = 5
+    # choose the image size
+    IMG_SIZE = 128
+    # There is no shearing option anymore, but there is a translation option
+    HEIGTH_FACTOR = 0.2
+    WIDTH_FACTOR = 0.2
+
+    # Create a sequential model with a list of layers
+    model = tf.keras.Sequential([
+    # Add a resizing layer to resize the images to a consistent shape
+    layers.Resizing(IMG_SIZE, IMG_SIZE),
+    # Add a rescaling layer to normalize the values of the pixels
+    layers.Rescaling(1./255),
+    # Add some data augmentation layers to apply random transformations during training
+    layers.RandomFlip("horizontal"),
+    layers.RandomTranslation(HEIGTH_FACTOR,WIDTH_FACTOR),
+    layers.RandomZoom(0.2),
+    # add a conv2d filter that will go over the image from left to right calculating filter maps
+    layers.Conv2D(32, (3, 3), input_shape = (IMG_SIZE, IMG_SIZE, 3), activation="relu"),
+    layers.MaxPooling2D((2, 2)),
+    # turn off 20% of the nodes in a random order so you dont overfit the model
+    layers.Dropout(0.2),
+    layers.Conv2D(32, (3, 3), activation="relu"),
+
+    layers.MaxPooling2D((2, 2)),
+    layers.Dropout(0.2),
+    layers.Flatten(),
+    layers.Dense(128, activation="relu"),
+    layers.Dense(NUM_CLASSES, activation="softmax")
+    ])
+
+    # Compile and train your model as usual
+    # Compile and train your model as usual
+    model.compile(optimizer = optimizers.Adam(learning_rate=0.0001), 
+            loss = 'categorical_crossentropy', 
+            metrics = ['accuracy'])
 if st.sidebar.button("EDA"):
     st.header("Data analysis")
     st.write("In this deep learning task, I decided to train a model that would be able to differentiate between 5 types of animals: dogs, cats, kangaroos, pandas and sharks.")
@@ -117,84 +194,7 @@ if st.sidebar.button("EDA"):
         num_images = len(os.listdir(class_path))
         st.write(f"{class_name} class, Number of Images: {num_images}")
 
-# Set the parameters for your data
-batch_size = 32
-image_size = (224, 224)
-validation_split = 0.2
 
-train_ds = image_dataset_from_directory(
-    directory='./datasets/animals/training',
-    labels='inferred',
-    label_mode='categorical',
-    batch_size=batch_size,
-    image_size=image_size,
-    validation_split=validation_split,
-    subset='training',
-    seed=123
-)
-
-# Create the validation dataset from the 'train' directory
-validation_ds = image_dataset_from_directory(
-    directory='./datasets/animals/training',
-    labels='inferred',
-    label_mode='categorical',
-    batch_size=batch_size,
-    image_size=image_size,
-    validation_split=validation_split,
-    subset='validation',
-    seed=123
-)
-
-# Create the testing dataset from the 'test' directory
-test_ds = image_dataset_from_directory(
-    directory='./datasets/animals/test',
-    labels='inferred',
-    label_mode='categorical',
-    batch_size=batch_size,
-    image_size=image_size
-)
-
-epoch_slider = st.sidebar.slider("Number of epochs", min_value=5, max_value=30, value=15, step=5)
-batch_size_dropdown = st.sidebar.selectbox("Select the batch size",("32","64","128"))
-
-
-# Choose the number of classes that you will be working with
-NUM_CLASSES = 5
-# choose the image size
-IMG_SIZE = 128
-# There is no shearing option anymore, but there is a translation option
-HEIGTH_FACTOR = 0.2
-WIDTH_FACTOR = 0.2
-
-# Create a sequential model with a list of layers
-model = tf.keras.Sequential([
-# Add a resizing layer to resize the images to a consistent shape
-layers.Resizing(IMG_SIZE, IMG_SIZE),
-# Add a rescaling layer to normalize the values of the pixels
-layers.Rescaling(1./255),
-# Add some data augmentation layers to apply random transformations during training
-layers.RandomFlip("horizontal"),
-layers.RandomTranslation(HEIGTH_FACTOR,WIDTH_FACTOR),
-layers.RandomZoom(0.2),
-# add a conv2d filter that will go over the image from left to right calculating filter maps
-layers.Conv2D(32, (3, 3), input_shape = (IMG_SIZE, IMG_SIZE, 3), activation="relu"),
-layers.MaxPooling2D((2, 2)),
-# turn off 20% of the nodes in a random order so you dont overfit the model
-layers.Dropout(0.2),
-layers.Conv2D(32, (3, 3), activation="relu"),
-
-layers.MaxPooling2D((2, 2)),
-layers.Dropout(0.2),
-layers.Flatten(),
-layers.Dense(128, activation="relu"),
-layers.Dense(NUM_CLASSES, activation="softmax")
-])
-
-# Compile and train your model as usual
-# Compile and train your model as usual
-model.compile(optimizer = optimizers.Adam(learning_rate=0.0001), 
-            loss = 'categorical_crossentropy', 
-            metrics = ['accuracy'])
 
 
 if st.sidebar.button("Train the model"):
